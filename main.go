@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -31,7 +32,49 @@ func main(){
 	})
 
 	http.HandleFunc("GET /api/notes", func(w http.ResponseWriter, r *http.Request) {
+		rows, err := db.DB.Query("SELECT * FROM notes")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		type Note struct {
+			ID      int    `json:"id"`
+			Title   string `json:"title"`
+			Content string `json:"content"`
+		}
+
+		var notes = []Note{}
+
+		for rows.Next() {
+			var id int
+			var title string
+			var content string
+			err := rows.Scan(&id, &title, &content)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			notes = append(notes, Note{
+				ID:      id,
+				Title:   title,
+				Content: content,
+			})
+		}
+
+		res, err := json.Marshal(notes)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+		w.Write(res)
 	})
 
   http.HandleFunc("GET /api/notes/{id}", func(w http.ResponseWriter, r *http.Request) {
