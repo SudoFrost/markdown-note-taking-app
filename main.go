@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -78,7 +79,44 @@ func main(){
 	})
 
   http.HandleFunc("GET /api/notes/{id}", func(w http.ResponseWriter, r *http.Request) {
+		paramID := r.PathValue("id")
+		row := db.DB.QueryRow("SELECT * FROM notes WHERE id = ?", paramID)
+
+    if row == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		type Note struct {
+			ID      int    `json:"id"`
+			Title   string `json:"title"`
+			Content string `json:"content"`
+		}
+
+		var id int
+		var title string
+		var content string
+		err := row.Scan(&id, &title, &content)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		res, err := json.Marshal(Note{
+			ID:      id,
+			Title:   title,
+			Content: content,
+		})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+		w.Write(res)
 	})
 
 	http.HandleFunc("GET /api/notes/{id}/render", func(w http.ResponseWriter, r *http.Request) {
