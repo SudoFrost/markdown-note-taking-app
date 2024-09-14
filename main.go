@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 	"github.com/sudofrost/markdown-note-taking-app/internal/db"
 )
 
@@ -120,7 +123,35 @@ func main(){
 	})
 
 	http.HandleFunc("GET /api/notes/{id}/render", func(w http.ResponseWriter, r *http.Request) {
+		paramID := r.PathValue("id")
+		row := db.DB.QueryRow("SELECT content FROM notes WHERE id = ?", paramID)
+
+    if row == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		var content string
+		err := row.Scan(&content)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		
+
+		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusOK)
+		p := parser.New()
+		flags := html.CommonFlags | html.HrefTargetBlank
+		rOPTS := html.RendererOptions{
+			Flags: flags,
+		}
+		rr := html.NewRenderer(rOPTS)
+		ad := markdown.ToHTML([]byte(content), p, rr)
+		w.Write(ad)
 	})
 
 	fmt.Println("Server started on port 8080")
