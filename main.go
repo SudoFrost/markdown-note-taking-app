@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/gomarkdown/markdown"
@@ -14,7 +15,25 @@ import (
 
 func main(){
 	http.HandleFunc("POST /api/grammar-check", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+		content := r.FormValue("content")
+		if content == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		options:= map[string][]string{
+			"language": {"en-US"},
+			"text": {content},
+		}
+
+		res, err := http.PostForm("https://api.languagetool.org/v2/check", options)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+    defer res.Body.Close()
+		w.WriteHeader(res.StatusCode)
+		io.Copy(w, res.Body)
 	})
 
 	http.HandleFunc("POST /api/notes", func(w http.ResponseWriter, r *http.Request) {
