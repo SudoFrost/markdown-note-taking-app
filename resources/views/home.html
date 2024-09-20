@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" class="text-[10px]">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Note Taking App</title>
+  <link rel="stylesheet" href='{{vite "resources/css/app.css"}}'>
+  <script type="module" src="http://localhost:5173/@vite/client"></script>
+  <script type="module" src='{{vite "resources/js/main.js"}}'></script>
+</head>
+
+<body class="min-h-screen w-screen">
+  <div class="min-h-screen grid grid-cols-12">
+    <nav class="bg-blue-600 col-span-2 p-10 text-white flex flex-col gap-5">
+      <div class="flex justify-center gap-2">
+        <h2 class="text-xl font-bold">Note Taking App</h2>
+        <i data-lucide="notebook-pen"></i>
+      </div>
+      <div class="flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+          <h4 class="text-lg font-bold">CATEGORIES</h4>
+          <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-700" id="create-category">Add</button>
+        </div>
+        <ul class="-mx-10" id="categories">
+        </ul>
+      </div>
+    </nav>
+    <div class="col-span-3 bg-slate-100 p-10 flex flex-col gap-5">
+      <h3 class="text-xl font-bold text-center">Notes</h3>
+      <div class="flex justify-stretch" id="search-bar">
+        <input type="text" placeholder="Search Notes" class="rounded-l-md px-2 flex-grow w-full bg-slate-200"
+          id="search">
+        <button class="bg-blue-500 text-white px-3 py-1 rounded-r-md hover:bg-blue-700"
+          id="search-notes">Search</button>
+      </div>
+      <button class="bg-green-500 p-2 hover:bg-green-700" id="create-note">Create Note</button>
+      <ul class="border-t flex flex-col gap-2 py-2" id="notes" data-category=""></ul>
+    </div>
+    <main class="col-span-7 p-3">
+      <form data-action="/api/notes" data-method="POST" class="flex flex-col h-full gap-3" id="note-form">
+        <div class="flex items-stretch gap-2">
+          <input type="text" name="title" placeholder="Title" class="flex-grow bg-slate-300 p-3 outline-none">
+          <select name="category" class="bg-slate-300 p-3 outline-none" id="select-category"></select>
+          <button class="bg-blue-500 text-white px-3 py-1 hover:bg-blue-700" id="save-note">Save</button>
+          <textarea name="content" hidden></textarea>
+        </div>
+        <div id="editor" class="flex-grow"></div>
+      </form>
+    </main>
+  </div>
+</body>
+
+<template id="note-template">
+  <li class="rounded-md hover:bg-blue-400 px-2 cursor-pointer p-2 flex justify-between items-center" data-id>
+    <a href="#">Note 1</a>
+    <div>
+      <button id="edit-note" class="bg-green-500 text-white p-1 rounded hover:bg-green-700">
+        <i data-lucide="pencil"></i>
+      </button>
+      <button id="delete-note" class="bg-red-500 text-white p-1 rounded hover:bg-red-700">
+        <i data-lucide="trash-2"></i>
+      </button>
+    </div>
+  </li>
+</template>
+
+<template id="category-template">
+  <li
+    class="hover:bg-blue-700 flex justify-between cursor-pointer py-2 px-10 enabled:bg-blue-900 [&[data-active=true]]:bg-blue-700"
+    data-id>
+    <a class="flex items-center flex-grow" href="#">Category 1</a>
+    <div class="flex gap-2">
+      <button id="edit" class="bg-green-500 text-white p-1 rounded hover:bg-green-700">
+        <i data-lucide="pencil"></i>
+      </button>
+      <button id="delete" class="bg-red-500 text-white p-1 rounded hover:bg-red-700">
+        <i data-lucide="trash-2"></i>
+      </button>
+    </div>
+  </li>
+</template>
+
+<template id="category-form-template">
+  <li class="hover:bg-blue-700 py-2 px-10" data-id>
+    <form class="flex justify-between cursor-pointer gap-2" data-action data-method onsubmit="return false">
+      <input class="w-full flex items-center outline-none bg-transparent border-b" type="text" name="name"
+        placeholder="Add Category" />
+      <div class="flex gap-2">
+        <button id="save" class="bg-green-500 text-white p-1 rounded hover:bg-green-700">
+          <i data-lucide="check"></i>
+        </button>
+        <button id="cancel" class="bg-amber-500 text-white p-1 rounded hover:bg-amber-700">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+    </form>
+  </li>
+</template>
+
+</html>
